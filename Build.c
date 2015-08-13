@@ -215,7 +215,11 @@ int Build(char *mddev, struct mddev_dev *devlist,
 		if (s->bitmap_file) {
 			bitmap_fd = open(s->bitmap_file, O_RDWR);
 			if (bitmap_fd < 0) {
-				int major = BITMAP_MAJOR_HI;
+				int major;
+				major = BITMAP_MAJOR_HI;
+				if (strcmp(s->bitmap_file, "clustered") == 0)
+					major = BITMAP_MAJOR_CLUSTERED;
+
 #if 0
 				if (s->bitmap_chunk == UnSet) {
 					pr_err("%s cannot be openned.",
