@@ -1655,9 +1655,11 @@ static int write_init_super1(struct supertype *st)
 			if (sb_offset < array_size + bm_space)
 				bm_space = sb_offset - array_size;
 			sb->data_size = __cpu_to_le64(sb_offset - bm_space);
-			if (bm_space >= 8) {
-				sb->bblog_size = __cpu_to_le16(8);
-				sb->bblog_offset = __cpu_to_le32((unsigned)-8);
+			if (!st->nodes) {
+				if (bm_space >= 8) {
+					sb->bblog_size = __cpu_to_le16(8);
+					sb->bblog_offset = __cpu_to_le32((unsigned)-8);
+				}
 			}
 			break;
 		case 1:
@@ -1667,12 +1669,14 @@ static int write_init_super1(struct supertype *st)
 
 			sb->data_offset = __cpu_to_le64(data_offset);
 			sb->data_size = __cpu_to_le64(dsize - data_offset);
-			if (data_offset >= 8 + 32*2 + 8) {
-				sb->bblog_size = __cpu_to_le16(8);
-				sb->bblog_offset = __cpu_to_le32(8 + 32*2);
-			} else if (data_offset >= 16) {
-				sb->bblog_size = __cpu_to_le16(8);
-				sb->bblog_offset = __cpu_to_le32(data_offset-8);
+			if (!st->nodes) {
+				if (data_offset >= 8 + 32*2 + 8) {
+					sb->bblog_size = __cpu_to_le16(8);
+					sb->bblog_offset = __cpu_to_le32(8 + 32*2);
+				} else if (data_offset >= 16) {
+					sb->bblog_size = __cpu_to_le16(8);
+					sb->bblog_offset = __cpu_to_le32(data_offset-8);
+				}
 			}
 			break;
 		case 2:
@@ -1683,16 +1687,18 @@ static int write_init_super1(struct supertype *st)
 
 			sb->data_offset = __cpu_to_le64(data_offset);
 			sb->data_size = __cpu_to_le64(dsize - data_offset);
-			if (data_offset >= 16 + 32*2 + 8) {
-				sb->bblog_size = __cpu_to_le16(8);
-				sb->bblog_offset = __cpu_to_le32(8 + 32*2);
-			} else if (data_offset >= 16+16) {
-				sb->bblog_size = __cpu_to_le16(8);
-				/* '8' sectors for the bblog, and another '8'
-				 * because we want offset from superblock, not
-				 * start of device.
-				 */
-				sb->bblog_offset = __cpu_to_le32(data_offset-8-8);
+			if (!st->nodes) {
+				if (data_offset >= 16 + 32*2 + 8) {
+					sb->bblog_size = __cpu_to_le16(8);
+					sb->bblog_offset = __cpu_to_le32(8 + 32*2);
+				} else if (data_offset >= 16+16) {
+					sb->bblog_size = __cpu_to_le16(8);
+					/* '8' sectors for the bblog, and another '8'
+					 * because we want offset from superblock, not
+					 * start of device.
+					 */
+					sb->bblog_offset = __cpu_to_le32(data_offset-8-8);
+				}
 			}
 			break;
 		default:
